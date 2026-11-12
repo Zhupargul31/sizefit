@@ -1,8 +1,16 @@
 <?php
+session_start();
+require_once "db.php";
+
+// Жүйеге кіріп тұрған пайдаланушыны кабинетке жіберу
+if (isset($_SESSION["user_id"])) {
+    header("Location: profile.php");
+    exit;
+}
+
 $message = "";
 $success = false;
 
-// Тіркелу формасын серверде тексеру ($_POST)
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $name = trim($_POST["name"] ?? "");
     $email = trim($_POST["email"] ?? "");
@@ -22,10 +30,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     } elseif ($password !== $confirm) {
         $message = "Құпиясөздер сәйкес келмейді.";
     } else {
-        // 11-аптада: password_hash() арқылы хэштеп, users кестесіне сақтаймыз.
-        $success = true;
-        $message = "Құрметті " . $name . ", форма сәтті толтырылды!";
-        $_POST = []; // форманы тазалау
+        // Бұл email бұрын тіркелген бе?
+        $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+        $stmt->execute([$email]);
+
+        if ($stmt->fetch()) {
+            $message = "Бұл email бұрын тіркелген.";
+        } else {
+            // Құпиясөзді хэштеу — ашық түрде сақталмайды
+            $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+
+            $insert = $pdo->prepare(
+                "INSERT INTO users (full_name, email, phone, password_hash)
+                 VALUES (?, ?, ?, ?)"
+            );
+            $insert->execute([$name, $email, $phone, $passwordHash]);
+
+            $success = true;
+            $message = "Тіркелу сәтті өтті! Енді жүйеге кіре аласыз.";
+            $_POST = []; // форманы тазалау
+        }
     }
 }
 
@@ -49,6 +73,9 @@ include "header.php";
     <?php if ($message !== ""): ?>
         <div class="message <?= $success ? "success" : "error" ?>">
             <?= htmlspecialchars($message, ENT_QUOTES, "UTF-8") ?>
+            <?php if ($success): ?>
+                <a href="login.php">Кіру →</a>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
 

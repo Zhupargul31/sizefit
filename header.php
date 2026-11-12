@@ -1,8 +1,13 @@
 <?php
 // Әр беттің жоғарғы бөлігі: <head>, логотип және мәзір.
 // Қолдану: $pageTitle = "..."; include "header.php";
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $pageTitle = $pageTitle ?? "SizeFit — Онлайн киім өлшемін таңдау және тапсырыс беру";
 $currentPage = basename($_SERVER["PHP_SELF"]);
+$isLoggedIn = isset($_SESSION["user_id"]);
 
 // Ағымдағы бетті мәзірде белгілеу
 function activeClass($page, $currentPage) {
@@ -28,8 +33,16 @@ function activeClass($page, $currentPage) {
         <a href="index.php"<?= activeClass("index.php", $currentPage) ?>>Басты бет</a>
         <a href="catalog.php"<?= activeClass("catalog.php", $currentPage) ?>>Каталог</a>
         <a href="size.php"<?= activeClass("size.php", $currentPage) ?>>Өлшемді анықтау</a>
-        <a href="login.php"<?= activeClass("login.php", $currentPage) ?>>Кіру</a>
-        <a href="register.php" class="main-btn small">Тіркелу</a>
+
+        <?php if ($isLoggedIn): ?>
+            <a href="profile.php"<?= activeClass("profile.php", $currentPage) ?>>
+                👤 <?= htmlspecialchars($_SESSION["user_name"], ENT_QUOTES, "UTF-8") ?>
+            </a>
+            <a href="logout.php" class="main-btn small">Шығу</a>
+        <?php else: ?>
+            <a href="login.php"<?= activeClass("login.php", $currentPage) ?>>Кіру</a>
+            <a href="register.php" class="main-btn small">Тіркелу</a>
+        <?php endif; ?>
     </nav>
 </header>
 

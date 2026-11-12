@@ -1,47 +1,75 @@
 <?php
-include "data.php";
+session_start();
+require_once "db.php";
 
 $message = "";
 $messageType = "error";
 
-// ---------- 1. Тапсырыс формасын серверде өңдеу ($_POST) ----------
+// ---------- 1. Тапсырыс формасын өңдеу ($_POST) ----------
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $productId = (int) ($_POST["product_id"] ?? 0);
-    $size = $_POST["size"] ?? "";
-    $quantity = (int) ($_POST["quantity"] ?? 0);
-    $name = trim($_POST["client_name"] ?? "");
-    $phone = trim($_POST["client_phone"] ?? "");
-    $address = trim($_POST["address"] ?? "");
 
-    // Таңдалған тауарды массивтен табу
-    $selected = null;
-    foreach ($products as $p) {
-        if ($p["id"] === $productId) {
-            $selected = $p;
-        }
+    // Тапсырысты тек жүйеге кірген пайдаланушы бере алады
+    if (!isset($_SESSION["user_id"])) {
+        header("Location: login.php?need_login=1");
+        exit;
     }
 
-    if ($name === "" || $phone === "" || $address === "" || $size === "") {
-        $message = "Барлық өрісті толтырыңыз.";
-    } elseif ($selected === null || !isset($selected["sizes"][$size])) {
-        $message = "Тауар немесе өлшем табылмады.";
-    } elseif (!preg_match('/^\+?7[0-9]{10}$/', $phone)) {
-        $message = "Телефон нөмірін +77001234567 форматында енгізіңіз.";
+    $sizeId = (int) ($_POST["size_id"] ?? 0);
+    $quantity = (int) ($_POST["quantity"] ?? 0);
+    $address = trim($_POST["address"] ?? "");
+
+    if ($sizeId <= 0 || $address === "") {
+        $message = "Өлшемді таңдап, жеткізу мекенжайын жазыңыз.";
     } elseif ($quantity < 1 || $quantity > 5) {
         $message = "Саны 1-ден 5-ке дейін болуы керек.";
-    } elseif ($selected["sizes"][$size] === 0) {
-        $message = "Кешіріңіз, " . $size . " өлшемі таусылды.";
-    } elseif ($selected["sizes"][$size] < $quantity) {
-        $message = "Кешіріңіз, " . $size . " өлшемінде тек "
-                 . $selected["sizes"][$size] . " дана қалды.";
+    } elseif (mb_strlen($address) < 5) {
+        $message = "Жеткізу мекенжайын толығырақ жазыңыз.";
     } else {
-        $total = $selected["price"] * $quantity;
+        // Таңдалған өлшем мен тауарды табу
+        $stmt = $pdo->prepare(
+            "SELECT s.id, s.size_label, s.stock, p.name, p.price
+             FROM sizes s
+             JOIN products p ON p.id = s.product_id
+             WHERE s.id = ?"
+        );
+        $stmt->execute([$sizeId]);
+        $item = $stmt->fetch();
 
-        $messageType = "success";
-        $message = "Құрметті " . $name . ", «" . $selected["name"] . "» (" . $size . ", "
-                 . $quantity . " дана) тапсырысыңыз қабылданды! Жалпы сомасы: "
-                 . number_format($total, 0, ".", " ") . " ₸. Жақын арада "
-                 . $phone . " нөмірі арқылы хабарласамыз.";
+        if (!$item) {
+            $message = "Тауар табылмады.";
+        } elseif ($item["stock"] <= 0) {
+            $message = "Кешіріңіз, " . $item["size_label"] . " өлшемі таусылды.";
+        } elseif ($item["stock"] < $quantity) {
+            $message = "Кешіріңіз, " . $item["size_label"] . " өлшемінде тек "
+                     . $item["stock"] . " дана қалды.";
+        } else {
+            // Қойманы азайту және тапсырысты сақтау — бірге (транзакция)
+            $pdo->beginTransaction();
+
+            $update = $pdo->prepare(
+                "UPDATE sizes SET stock = stock - ? WHERE id = ? AND stock >= ?"
+            );
+            $update->execute([$quantity, $sizeId, $quantity]);
+
+            if ($update->rowCount() === 1) {
+                $total = $item["price"] * $quantity;
+
+                $insert = $pdo->prepare(
+                    "INSERT INTO orders (user_id, size_id, quantity, total_price, address)
+                     VALUES (?, ?, ?, ?, ?)"
+                );
+                $insert->execute([$_SESSION["user_id"], $sizeId, $quantity, $total, $address]);
+                $pdo->commit();
+
+                $messageType = "success";
+                $message = "«" . $item["name"] . "» (" . $item["size_label"] . ", " . $quantity
+                         . " дана) тапсырысыңыз қабылданды! Жалпы сомасы: "
+                         . number_format($total, 0, ".", " ") . " ₸.";
+            } else {
+                $pdo->rollBack();
+                $message = "Бұл өлшем жаңа ғана таусылды. Басқа өлшем таңдаңыз.";
+            }
+        }
     }
 }
 
@@ -51,20 +79,52 @@ $category = $_GET["category"] ?? "";
 $size = $_GET["size"] ?? "";
 
 $allSizes = ["XS", "S", "M", "L", "XL", "XXL"];
-$categories = array_unique(array_column($products, "category"));
-sort($categories);
 
-$filtered = [];
+// Санаттар тізімін дерекқордан алу
+$categories = $pdo->query("SELECT DISTINCT category FROM products ORDER BY category")
+                  ->fetchAll(PDO::FETCH_COLUMN);
 
-foreach ($products as $product) {
-    $matchesText = $search === "" || mb_stripos($product["name"], $search, 0, "UTF-8") !== false;
-    $matchesCategory = $category === "" || $product["category"] === $category;
-    $matchesSize = $size === "" || (($product["sizes"][$size] ?? 0) > 0);
+$sql = "SELECT * FROM products p WHERE 1 = 1";
+$params = [];
 
-    if ($matchesText && $matchesCategory && $matchesSize) {
-        $filtered[] = $product;
-    }
+if ($search !== "") {
+    $sql .= " AND p.name LIKE ?";
+    $params[] = "%" . $search . "%";
 }
+
+if (in_array($category, $categories, true)) {
+    $sql .= " AND p.category = ?";
+    $params[] = $category;
+}
+
+// Таңдалған өлшем қоймада бар тауарлар ғана
+if (in_array($size, $allSizes, true)) {
+    $sql .= " AND EXISTS (SELECT 1 FROM sizes s
+                          WHERE s.product_id = p.id AND s.size_label = ? AND s.stock > 0)";
+    $params[] = $size;
+}
+
+$sql .= " ORDER BY p.id";
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
+$products = $stmt->fetchAll();
+
+// Әр тауардың өлшемдерін алу
+$sizeStmt = $pdo->prepare(
+    "SELECT id, size_label, stock FROM sizes WHERE product_id = ?
+     ORDER BY CASE size_label
+                  WHEN 'XS' THEN 1 WHEN 'S' THEN 2 WHEN 'M' THEN 3
+                  WHEN 'L' THEN 4 WHEN 'XL' THEN 5 ELSE 6
+              END"
+);
+
+foreach ($products as $i => $product) {
+    $sizeStmt->execute([$product["id"]]);
+    $products[$i]["sizes"] = $sizeStmt->fetchAll();
+}
+
+$isLoggedIn = isset($_SESSION["user_id"]);
 
 $pageTitle = "Каталог | SizeFit";
 include "header.php";
@@ -110,19 +170,22 @@ include "header.php";
     <?php if ($message !== ""): ?>
         <div class="message <?= $messageType ?>">
             <?= htmlspecialchars($message, ENT_QUOTES, "UTF-8") ?>
+            <?php if ($messageType === "success"): ?>
+                <a href="profile.php">Тапсырыстарым →</a>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
 
-    <p class="result-count">Табылған тауарлар: <b><?= count($filtered) ?></b></p>
+    <p class="result-count">Табылған тауарлар: <b><?= count($products) ?></b></p>
 
     <div class="products-grid">
-        <?php foreach ($filtered as $product):
-            $available = array_filter($product["sizes"], fn($stock) => $stock > 0);
+        <?php foreach ($products as $product):
+            $available = array_filter($product["sizes"], fn($s) => $s["stock"] > 0);
         ?>
             <article class="product-card">
                 <div class="product-top" style="background: <?= htmlspecialchars($product["color"]) ?>;">
                     <span class="gender-tag"><?= htmlspecialchars($product["gender"]) ?></span>
-                    <span class="product-icon"><?= $product["icon"] ?></span>
+                    <span class="product-icon"><?= htmlspecialchars($product["icon"]) ?></span>
                     <span class="product-type"><?= htmlspecialchars($product["category"]) ?></span>
                 </div>
 
@@ -131,9 +194,11 @@ include "header.php";
                     <p class="product-desc"><?= htmlspecialchars($product["description"]) ?></p>
 
                     <div class="sizes-row">
-                        <?php foreach ($product["sizes"] as $label => $stock): ?>
-                            <span class="size-chip <?= $stock > 0 ? "" : "out" ?>"
-                                  title="Қоймада: <?= $stock ?> дана"><?= $label ?></span>
+                        <?php foreach ($product["sizes"] as $s): ?>
+                            <span class="size-chip <?= $s["stock"] > 0 ? "" : "out" ?>"
+                                  title="Қоймада: <?= (int) $s["stock"] ?> дана">
+                                <?= htmlspecialchars($s["size_label"]) ?>
+                            </span>
                         <?php endforeach; ?>
                     </div>
 
@@ -141,17 +206,20 @@ include "header.php";
 
                     <?php if (count($available) === 0): ?>
                         <button class="order-btn" disabled>Барлық өлшем таусылды</button>
+
+                    <?php elseif (!$isLoggedIn): ?>
+                        <a href="login.php?need_login=1" class="order-btn">Тапсырыс беру үшін кіріңіз</a>
+
                     <?php else: ?>
                         <form method="POST" action="catalog.php" class="order-form">
-                            <input type="hidden" name="product_id" value="<?= $product["id"] ?>">
-
                             <div class="date-row">
                                 <label>
                                     Өлшем
-                                    <select name="size" required>
-                                        <?php foreach ($available as $label => $stock): ?>
-                                            <option value="<?= $label ?>" <?= $label === $size ? "selected" : "" ?>>
-                                                <?= $label ?> (<?= $stock ?> дана)
+                                    <select name="size_id" required>
+                                        <?php foreach ($available as $s): ?>
+                                            <option value="<?= (int) $s["id"] ?>"
+                                                <?= $s["size_label"] === $size ? "selected" : "" ?>>
+                                                <?= htmlspecialchars($s["size_label"]) ?> (<?= (int) $s["stock"] ?> дана)
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
@@ -161,16 +229,6 @@ include "header.php";
                                     <input type="number" name="quantity" value="1" min="1" max="5" required>
                                 </label>
                             </div>
-
-                            <label class="field">
-                                Аты-жөніңіз
-                                <input type="text" name="client_name" placeholder="Атыңыз" required>
-                            </label>
-
-                            <label class="field">
-                                Телефон
-                                <input type="text" name="client_phone" placeholder="+77001234567" required>
-                            </label>
 
                             <label class="field">
                                 Жеткізу мекенжайы
@@ -186,7 +244,7 @@ include "header.php";
         <?php endforeach; ?>
     </div>
 
-    <?php if (count($filtered) === 0): ?>
+    <?php if (count($products) === 0): ?>
         <p class="empty-message">
             Іздеу бойынша тауар табылмады.<br>
             <a href="catalog.php">Барлық тауарды көру →</a>
