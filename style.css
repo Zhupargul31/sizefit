@@ -1,0 +1,994 @@
+/* SizeFit — ортақ стиль файлы */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    color: #1f2a37;
+    background: #f4f7fb;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+/* ---------- Header ---------- */
+.header {
+    min-height: 75px;
+    padding: 18px 7%;
+    background: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 2px 10px #0000000a;
+    position: relative;
+}
+
+.logo {
+    font-size: 25px;
+    font-weight: bold;
+}
+
+.logo span {
+    color: #7c3aed;
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    flex-wrap: wrap;
+}
+
+nav a {
+    font-size: 15px;
+}
+
+nav a:hover,
+nav a.active {
+    color: #7c3aed;
+}
+
+nav a.active {
+    font-weight: bold;
+}
+
+.burger {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #2e1065;
+}
+
+/* ---------- Батырмалар ---------- */
+.main-btn {
+    display: inline-block;
+    background: #7c3aed;
+    color: white;
+    padding: 13px 22px;
+    border-radius: 8px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+}
+
+.main-btn:hover {
+    background: #6d28d9;
+}
+
+nav a.main-btn,
+nav a.main-btn:hover {
+    color: white;
+}
+
+.main-btn.small {
+    padding: 10px 16px;
+    font-size: 14px;
+}
+
+.main-btn.light {
+    background: white;
+    color: #2e1065;
+}
+
+.main-btn.light:hover {
+    background: #f5f3ff;
+}
+
+/* ---------- Hero (басты бет) ---------- */
+.hero {
+    min-height: 380px;
+    padding: 75px 7%;
+    background: linear-gradient(115deg, #2e1065, #7c3aed);
+    color: white;
+    display: flex;
+    align-items: center;
+}
+
+.hero-content {
+    max-width: 620px;
+}
+
+.subtitle {
+    font-size: 13px;
+    letter-spacing: 2px;
+    font-weight: bold;
+    color: #7c3aed;
+    margin-bottom: 12px;
+}
+
+.hero .subtitle {
+    color: #c4b5fd;
+}
+
+.hero h1 {
+    font-size: 44px;
+    line-height: 1.2;
+    margin-bottom: 18px;
+}
+
+.hero .description {
+    font-size: 17px;
+    line-height: 1.6;
+    color: #ede9fe;
+    margin-bottom: 28px;
+}
+
+/* ---------- Артықшылықтар ---------- */
+.features {
+    max-width: 1100px;
+    margin: -45px auto 0;
+    padding: 0 5%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    position: relative;
+}
+
+.feature-box {
+    background: white;
+    padding: 26px;
+    border-radius: 14px;
+    text-align: center;
+    box-shadow: 0 8px 25px #0000001a;
+}
+
+.feature-icon {
+    font-size: 30px;
+    margin-bottom: 10px;
+}
+
+.feature-box h3 {
+    margin-bottom: 6px;
+}
+
+.feature-box p {
+    color: #6b7686;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* ---------- Қадамдар ---------- */
+.steps-section {
+    padding: 70px 7%;
+    text-align: center;
+}
+
+.steps-section h2 {
+    font-size: 30px;
+    margin-bottom: 35px;
+}
+
+.steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.step {
+    background: white;
+    padding: 28px 22px;
+    border-radius: 14px;
+    box-shadow: 0 5px 18px #0000000d;
+}
+
+.step-number {
+    display: inline-flex;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #7c3aed;
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+}
+
+.step h3 {
+    margin-bottom: 8px;
+}
+
+.step p {
+    color: #6b7686;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* ---------- Бет тақырыбы ---------- */
+.page-title {
+    padding: 50px 7% 70px;
+    background: linear-gradient(115deg, #2e1065, #7c3aed);
+    color: white;
+}
+
+.page-title .subtitle {
+    color: #c4b5fd;
+}
+
+.page-title h1 {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+.page-title p {
+    color: #ede9fe;
+}
+
+/* ---------- Іздеу ---------- */
+.search-section {
+    max-width: 1100px;
+    margin: -40px auto 0;
+    padding: 24px;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 8px 25px #0000001a;
+    position: relative;
+}
+
+.search-box {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.search-box input[type="text"],
+.search-box select {
+    flex: 1;
+    min-width: 180px;
+    padding: 13px;
+    border: 1px solid #dbe2ec;
+    border-radius: 8px;
+    font-size: 15px;
+    background: white;
+}
+
+.search-box button {
+    padding: 13px 26px;
+    border: none;
+    border-radius: 8px;
+    background: #7c3aed;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.search-box button:hover {
+    background: #6d28d9;
+}
+
+.checkbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.reset-link {
+    color: #c53030;
+    font-size: 14px;
+}
+
+/* ---------- Бөлмелер ---------- */
+.products-section {
+    padding: 40px 7% 60px;
+}
+
+.result-count {
+    color: #6b7686;
+    margin-bottom: 18px;
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+.product-card {
+    background: white;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 5px 18px #0000000d;
+    transition: transform 0.2s;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+}
+
+.product-top {
+    height: 110px;
+    padding: 18px;
+    background: linear-gradient(135deg, #f3e8ff, #ddd6fe);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.product-number {
+    font-size: 30px;
+    font-weight: bold;
+    color: #2e1065;
+}
+
+.product-type {
+    background: white;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #7c3aed;
+}
+
+.product-info {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.product-info h3 {
+    font-size: 19px;
+    margin-bottom: 6px;
+}
+
+.product-meta {
+    color: #6b7686;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.product-desc {
+    color: #4a5565;
+    font-size: 14px;
+    line-height: 1.45;
+    margin-bottom: 12px;
+}
+
+.status {
+    align-self: flex-start;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+
+.status.free {
+    background: #e3f7ea;
+    color: #1d8a45;
+}
+
+.status.busy {
+    background: #fdeaea;
+    color: #c53030;
+}
+
+.price {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 14px;
+    padding-top: 12px;
+    border-top: 1px solid #eef1f5;
+    margin-top: auto;
+}
+
+.order-form .date-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.order-form label,
+.order-form .field {
+    font-size: 12px;
+    color: #6b7686;
+    display: block;
+}
+
+.order-form input {
+    width: 100%;
+    margin-top: 4px;
+    padding: 9px;
+    border: 1px solid #dbe2ec;
+    border-radius: 7px;
+    font-size: 14px;
+}
+
+.order-form .field {
+    margin-bottom: 10px;
+}
+
+.order-btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: #7c3aed;
+    color: white;
+    text-align: center;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.order-btn:hover {
+    background: #6d28d9;
+}
+
+.order-btn:disabled {
+    background: #cbd3df;
+    cursor: not-allowed;
+}
+
+.form-error {
+    color: #c53030;
+    font-size: 13px;
+    margin: 6px 0;
+}
+
+.empty-message {
+    text-align: center;
+    padding: 40px;
+    color: #6b7686;
+    font-size: 17px;
+    line-height: 1.8;
+}
+
+.empty-message a {
+    color: #7c3aed;
+    font-weight: bold;
+}
+
+/* ---------- Хабарламалар ---------- */
+.message {
+    padding: 13px 15px;
+    border-radius: 8px;
+    margin-bottom: 18px;
+    background: #fff1ec;
+    color: #9c3a1a;
+    line-height: 1.5;
+}
+
+.message.success {
+    background: #e3f7ea;
+    color: #1d8a45;
+}
+
+.message a {
+    font-weight: bold;
+    margin-left: 6px;
+    text-decoration: underline;
+}
+
+/* ---------- Формалар (login / register) ---------- */
+.form-container {
+    max-width: 500px;
+    width: 92%;
+    margin: 50px auto;
+    padding: 32px;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 5px 20px #0000000d;
+}
+
+.form-container h1 {
+    margin-bottom: 10px;
+}
+
+.intro {
+    color: #6b7686;
+    line-height: 1.5;
+    margin-bottom: 22px;
+}
+
+.form-container label {
+    display: block;
+    margin-top: 17px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.form-container input {
+    width: 100%;
+    padding: 13px;
+    margin-top: 8px;
+    border: 1px solid #dbe2ec;
+    border-radius: 8px;
+    font-size: 15px;
+}
+
+.form-container input:focus,
+.order-form input:focus,
+.search-box input:focus {
+    outline: none;
+    border-color: #7c3aed;
+}
+
+.form-container button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 25px;
+    border: none;
+    border-radius: 8px;
+    background: #7c3aed;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.form-container button:hover {
+    background: #6d28d9;
+}
+
+.form-container .form-error {
+    margin-top: 12px;
+}
+
+.bottom {
+    text-align: center;
+    margin-top: 22px;
+    font-size: 14px;
+}
+
+.bottom a {
+    color: #7c3aed;
+    font-weight: bold;
+}
+
+/* ---------- Жеке кабинет ---------- */
+.profile-section {
+    padding: 45px 7%;
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 26px;
+    align-items: start;
+}
+
+.profile-card,
+.bookings-card {
+    background: white;
+    border-radius: 14px;
+    padding: 28px;
+    box-shadow: 0 5px 18px #0000000d;
+}
+
+.profile-card {
+    text-align: center;
+}
+
+.avatar {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #2e1065);
+    color: white;
+    font-size: 34px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-card h1 {
+    font-size: 22px;
+    margin-bottom: 8px;
+}
+
+.profile-info {
+    list-style: none;
+    text-align: left;
+    margin-bottom: 22px;
+}
+
+.profile-info li {
+    padding: 10px 0;
+    border-bottom: 1px solid #eef1f5;
+    font-size: 14px;
+}
+
+.profile-info span {
+    color: #6b7686;
+    display: inline-block;
+    min-width: 115px;
+}
+
+.logout-btn {
+    display: inline-block;
+    background: #e53e3e;
+    color: white;
+    padding: 11px 24px;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.logout-btn:hover {
+    background: #c53030;
+}
+
+.bookings-card h2 {
+    margin-bottom: 18px;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+th,
+td {
+    padding: 12px 10px;
+    text-align: left;
+    border-bottom: 1px solid #eef1f5;
+    white-space: nowrap;
+}
+
+th {
+    color: #6b7686;
+    font-size: 13px;
+    font-weight: bold;
+    background: #f7f9fc;
+}
+
+.badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.badge.pending   { background: #fff6dd; color: #a86b00; }
+.badge.approved  { background: #e3f7ea; color: #1d8a45; }
+.badge.rejected  { background: #fdeaea; color: #c53030; }
+.badge.cancelled { background: #eef1f5; color: #6b7686; }
+
+.cancel-btn {
+    background: none;
+    border: 1px solid #e53e3e;
+    color: #e53e3e;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.cancel-btn:hover {
+    background: #e53e3e;
+    color: white;
+}
+
+/* ---------- Footer ---------- */
+.footer {
+    background: #2e1065;
+    color: white;
+    padding: 30px 7%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.footer .logo span {
+    color: #c4b5fd;
+}
+
+.footer p {
+    color: #b8c6e0;
+    font-size: 14px;
+}
+
+/* ---------- Адаптивтілік (планшет және телефон) ---------- */
+@media (max-width: 900px) {
+    .profile-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .burger {
+        display: block;
+    }
+
+    nav {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        padding: 10px 7% 18px;
+        box-shadow: 0 8px 15px #0000001a;
+        z-index: 10;
+    }
+
+    nav.open {
+        display: flex;
+    }
+
+    nav a {
+        padding: 12px 0;
+        border-bottom: 1px solid #eef1f5;
+    }
+
+    nav a.main-btn {
+        margin-top: 10px;
+        text-align: center;
+        border-bottom: none;
+    }
+
+    .hero {
+        padding: 50px 6%;
+    }
+
+    .hero h1 {
+        font-size: 32px;
+    }
+
+    .page-title h1 {
+        font-size: 28px;
+    }
+
+    .search-section {
+        margin: -40px 4% 0;
+    }
+
+    .products-section,
+    .profile-section {
+        padding-left: 4%;
+        padding-right: 4%;
+    }
+
+    .footer {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+/* ================= SizeFit қосымша стильдері ================= */
+
+/* Тауар карточкасының жоғарғы бөлігі (түсі тауарға қарай өзгереді) */
+.product-top {
+    height: 150px;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.product-icon {
+    font-size: 64px;
+}
+
+.product-top .product-type {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+}
+
+.product-top .gender-tag {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    background: #ffffffcc;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #2e1065;
+}
+
+.sizes-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.size-chip {
+    min-width: 38px;
+    padding: 5px 8px;
+    border-radius: 6px;
+    border: 1px solid #ddd6fe;
+    font-size: 13px;
+    font-weight: bold;
+    text-align: center;
+    color: #2e1065;
+}
+
+.size-chip.out {
+    color: #b8bec9;
+    border-color: #eef1f5;
+    text-decoration: line-through;
+}
+
+.order-form select,
+.order-form input[type="number"],
+.order-form input[type="text"] {
+    width: 100%;
+    margin-top: 4px;
+    padding: 9px;
+    border: 1px solid #dbe2ec;
+    border-radius: 7px;
+    font-size: 14px;
+    background: white;
+}
+
+.order-form .date-row label {
+    margin-bottom: 0;
+}
+
+.help-link {
+    display: block;
+    text-align: center;
+    font-size: 13px;
+    color: #7c3aed;
+    margin-top: 10px;
+}
+
+/* Өлшем анықтау беті */
+.size-page {
+    padding: 45px 7% 60px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 26px;
+    align-items: start;
+}
+
+.size-card {
+    background: white;
+    border-radius: 14px;
+    padding: 28px;
+    box-shadow: 0 5px 18px #0000000d;
+}
+
+.size-card h2 {
+    margin-bottom: 8px;
+}
+
+.size-card label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.size-card input,
+.size-card select {
+    width: 100%;
+    padding: 12px;
+    margin-top: 7px;
+    border: 1px solid #dbe2ec;
+    border-radius: 8px;
+    font-size: 15px;
+    background: white;
+}
+
+.size-card button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 22px;
+    border: none;
+    border-radius: 8px;
+    background: #7c3aed;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.size-card button:hover {
+    background: #6d28d9;
+}
+
+.size-result {
+    margin-top: 22px;
+    padding: 22px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f3e8ff, #ddd6fe);
+    text-align: center;
+}
+
+.size-result .big-size {
+    font-size: 54px;
+    font-weight: bold;
+    color: #2e1065;
+    line-height: 1.1;
+}
+
+.size-result p {
+    color: #4a5565;
+    margin-top: 8px;
+    line-height: 1.5;
+}
+
+.size-result a {
+    display: inline-block;
+    margin-top: 14px;
+}
+
+.size-table td,
+.size-table th {
+    text-align: center;
+}
+
+.size-table tr.highlight td {
+    background: #f3e8ff;
+    font-weight: bold;
+    color: #2e1065;
+}
+
+@media (max-width: 900px) {
+    .size-page {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .size-page {
+        padding-left: 4%;
+        padding-right: 4%;
+    }
+}
+
+/* Тапсырыс мәртебелері */
+.badge.new       { background: #fff6dd; color: #a86b00; }
+.badge.confirmed { background: #e8f0ff; color: #2f5bd3; }
+.badge.shipped   { background: #f3e8ff; color: #6d28d9; }
+.badge.delivered { background: #e3f7ea; color: #1d8a45; }
