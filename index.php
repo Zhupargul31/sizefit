@@ -1,26 +1,8 @@
-<!DOCTYPE html>
-<html lang="kk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SizeFit — Онлайн киім өлшемін таңдау және тапсырыс беру</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+<?php
+$pageTitle = "SizeFit — Онлайн киім өлшемін таңдау және тапсырыс беру";
+include "header.php";
+?>
 
-<header class="header">
-    <a href="index.php" class="logo">Size<span>Fit</span></a>
-
-    <button class="burger" id="burger" aria-label="Мәзірді ашу">☰</button>
-
-    <nav id="nav">
-        <a href="index.php" class="active">Басты бет</a>
-        <a href="catalog.php">Каталог</a>
-        <a href="size.php">Өлшемді анықтау</a>
-    </nav>
-</header>
-
-<main>
 <section class="hero">
     <div class="hero-content">
         <p class="subtitle">ОНЛАЙН КИІМ ДҮКЕНІ</p>
@@ -78,13 +60,5 @@
         </div>
     </div>
 </section>
-</main>
 
-<footer class="footer">
-    <a href="index.php" class="logo">Size<span>Fit</span></a>
-    <p>© 2026 SizeFit. Онлайн киім өлшемін таңдау және тапсырыс беру жүйесі. Оқу жобасы.</p>
-</footer>
-
-<script src="script.js"></script>
-</body>
-</html>
+<?php include "footer.php"; ?>

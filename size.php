@@ -1,26 +1,37 @@
-<!DOCTYPE html>
-<html lang="kk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Өлшемді анықтау | SizeFit</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+<?php
+include "size_chart.php";
 
-<header class="header">
-    <a href="index.php" class="logo">Size<span>Fit</span></a>
+$message = "";
+$recommended = null;
+$tallNote = false;
 
-    <button class="burger" id="burger" aria-label="Мәзірді ашу">☰</button>
+// Өлшем анықтау формасын серверде өңдеу ($_POST)
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $chest = (float) str_replace(",", ".", $_POST["chest"] ?? "");
+    $waist = (float) str_replace(",", ".", $_POST["waist"] ?? "");
+    $height = (float) str_replace(",", ".", $_POST["height"] ?? "");
 
-    <nav id="nav">
-        <a href="index.php">Басты бет</a>
-        <a href="catalog.php">Каталог</a>
-        <a href="size.php" class="active">Өлшемді анықтау</a>
-    </nav>
-</header>
+    if ($chest <= 0 || $waist <= 0 || $height <= 0) {
+        $message = "Барлық өлшемді сантиметрмен енгізіңіз.";
+    } elseif ($height < 140 || $height > 210) {
+        $message = "Бойыңызды 140–210 см аралығында енгізіңіз.";
+    } else {
+        $recommended = recommendSize($chest, $waist, $sizeChart);
 
-<main>
+        if ($recommended === null) {
+            $message = "Бұл өлшемдер кестеден тыс (кеуде 80–116 см, бел 62–98 см). "
+                     . "Кеңесшімізге хабарласыңыз.";
+        }
+
+        // Бойы ұзын болса, ескерту беру
+        $tallNote = $height >= 180;
+    }
+}
+
+$pageTitle = "Өлшемді анықтау | SizeFit";
+include "header.php";
+?>
+
 <section class="page-title">
     <p class="subtitle">ӨЛШЕМ КЕҢЕСШІСІ</p>
     <h1>Өлшеміңді анықта</h1>
@@ -32,26 +43,41 @@
         <h2>Өлшемдеріңіз</h2>
         <p class="intro">Кеудені — ең кең жерінен, белді — ең жіңішке жерінен өлшеңіз.</p>
 
-        <!-- Әзірге өлшем JavaScript арқылы есептеледі (script.js) -->
-        <form id="jsSizeForm">
+        <?php if ($message !== ""): ?>
+            <div class="message error"><?= htmlspecialchars($message, ENT_QUOTES, "UTF-8") ?></div>
+        <?php endif; ?>
+
+        <form method="POST" action="size.php" id="sizeForm">
             <label for="chest">Кеуде айналымы (см)</label>
-            <input type="number" id="chest" min="60" max="140" step="0.5" placeholder="Мысалы: 92" required>
+            <input type="number" id="chest" name="chest" min="60" max="140" step="0.5"
+                   placeholder="Мысалы: 92"
+                   value="<?= htmlspecialchars($_POST["chest"] ?? "", ENT_QUOTES, "UTF-8") ?>" required>
 
             <label for="waist">Бел айналымы (см)</label>
-            <input type="number" id="waist" min="50" max="130" step="0.5" placeholder="Мысалы: 74" required>
+            <input type="number" id="waist" name="waist" min="50" max="130" step="0.5"
+                   placeholder="Мысалы: 74"
+                   value="<?= htmlspecialchars($_POST["waist"] ?? "", ENT_QUOTES, "UTF-8") ?>" required>
 
             <label for="height">Бойы (см)</label>
-            <input type="number" id="height" min="140" max="210" placeholder="Мысалы: 165" required>
+            <input type="number" id="height" name="height" min="140" max="210"
+                   placeholder="Мысалы: 165"
+                   value="<?= htmlspecialchars($_POST["height"] ?? "", ENT_QUOTES, "UTF-8") ?>" required>
 
-            <p class="form-error" hidden></p>
             <button type="submit">Өлшемді анықтау</button>
         </form>
 
-        <div class="size-result" id="sizeResult" hidden>
-            <p>Сізге ұсынылатын өлшем:</p>
-            <div class="big-size" id="bigSize"></div>
-            <a href="catalog.php" class="main-btn">Каталогқа өту →</a>
-        </div>
+        <?php if ($recommended !== null): ?>
+            <div class="size-result">
+                <p>Сізге ұсынылатын өлшем:</p>
+                <div class="big-size"><?= $recommended ?></div>
+                <?php if ($tallNote): ?>
+                    <p>Бойыңыз ұзын — ұзартылған (Tall) үлгілерді таңдаған дұрыс.</p>
+                <?php endif; ?>
+                <a href="catalog.php?size=<?= $recommended ?>" class="main-btn">
+                    <?= $recommended ?> өлшеміндегі киімдер →
+                </a>
+            </div>
+        <?php endif; ?>
     </div>
 
     <div class="size-card">
@@ -68,48 +94,17 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr data-size="XS">
-                        <td>XS</td>
-                        <td>80–85</td>
-                        <td>62–67</td>
-                    </tr>
-                    <tr data-size="S">
-                        <td>S</td>
-                        <td>86–91</td>
-                        <td>68–73</td>
-                    </tr>
-                    <tr data-size="M">
-                        <td>M</td>
-                        <td>92–97</td>
-                        <td>74–79</td>
-                    </tr>
-                    <tr data-size="L">
-                        <td>L</td>
-                        <td>98–103</td>
-                        <td>80–85</td>
-                    </tr>
-                    <tr data-size="XL">
-                        <td>XL</td>
-                        <td>104–109</td>
-                        <td>86–91</td>
-                    </tr>
-                    <tr data-size="XXL">
-                        <td>XXL</td>
-                        <td>110–116</td>
-                        <td>92–98</td>
-                    </tr>
+                    <?php foreach ($sizeChart as $row): ?>
+                        <tr class="<?= $row["size"] === $recommended ? "highlight" : "" ?>">
+                            <td><?= $row["size"] ?></td>
+                            <td><?= $row["chest_from"] ?>–<?= $row["chest_to"] ?></td>
+                            <td><?= $row["waist_from"] ?>–<?= $row["waist_to"] ?></td>
+                        </tr>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
     </div>
 </section>
-</main>
 
-<footer class="footer">
-    <a href="index.php" class="logo">Size<span>Fit</span></a>
-    <p>© 2026 SizeFit. Онлайн киім өлшемін таңдау және тапсырыс беру жүйесі. Оқу жобасы.</p>
-</footer>
-
-<script src="script.js"></script>
-</body>
-</html>
+<?php include "footer.php"; ?>

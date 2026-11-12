@@ -1,26 +1,75 @@
-<!DOCTYPE html>
-<html lang="kk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Каталог | SizeFit</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+<?php
+include "data.php";
 
-<header class="header">
-    <a href="index.php" class="logo">Size<span>Fit</span></a>
+$message = "";
+$messageType = "error";
 
-    <button class="burger" id="burger" aria-label="Мәзірді ашу">☰</button>
+// ---------- 1. Тапсырыс формасын серверде өңдеу ($_POST) ----------
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $productId = (int) ($_POST["product_id"] ?? 0);
+    $size = $_POST["size"] ?? "";
+    $quantity = (int) ($_POST["quantity"] ?? 0);
+    $name = trim($_POST["client_name"] ?? "");
+    $phone = trim($_POST["client_phone"] ?? "");
+    $address = trim($_POST["address"] ?? "");
 
-    <nav id="nav">
-        <a href="index.php">Басты бет</a>
-        <a href="catalog.php" class="active">Каталог</a>
-        <a href="size.php">Өлшемді анықтау</a>
-    </nav>
-</header>
+    // Таңдалған тауарды массивтен табу
+    $selected = null;
+    foreach ($products as $p) {
+        if ($p["id"] === $productId) {
+            $selected = $p;
+        }
+    }
 
-<main>
+    if ($name === "" || $phone === "" || $address === "" || $size === "") {
+        $message = "Барлық өрісті толтырыңыз.";
+    } elseif ($selected === null || !isset($selected["sizes"][$size])) {
+        $message = "Тауар немесе өлшем табылмады.";
+    } elseif (!preg_match('/^\+?7[0-9]{10}$/', $phone)) {
+        $message = "Телефон нөмірін +77001234567 форматында енгізіңіз.";
+    } elseif ($quantity < 1 || $quantity > 5) {
+        $message = "Саны 1-ден 5-ке дейін болуы керек.";
+    } elseif ($selected["sizes"][$size] === 0) {
+        $message = "Кешіріңіз, " . $size . " өлшемі таусылды.";
+    } elseif ($selected["sizes"][$size] < $quantity) {
+        $message = "Кешіріңіз, " . $size . " өлшемінде тек "
+                 . $selected["sizes"][$size] . " дана қалды.";
+    } else {
+        $total = $selected["price"] * $quantity;
+
+        $messageType = "success";
+        $message = "Құрметті " . $name . ", «" . $selected["name"] . "» (" . $size . ", "
+                 . $quantity . " дана) тапсырысыңыз қабылданды! Жалпы сомасы: "
+                 . number_format($total, 0, ".", " ") . " ₸. Жақын арада "
+                 . $phone . " нөмірі арқылы хабарласамыз.";
+    }
+}
+
+// ---------- 2. Іздеу және сүзгілеу ($_GET) ----------
+$search = trim($_GET["search"] ?? "");
+$category = $_GET["category"] ?? "";
+$size = $_GET["size"] ?? "";
+
+$allSizes = ["XS", "S", "M", "L", "XL", "XXL"];
+$categories = array_unique(array_column($products, "category"));
+sort($categories);
+
+$filtered = [];
+
+foreach ($products as $product) {
+    $matchesText = $search === "" || mb_stripos($product["name"], $search, 0, "UTF-8") !== false;
+    $matchesCategory = $category === "" || $product["category"] === $category;
+    $matchesSize = $size === "" || (($product["sizes"][$size] ?? 0) > 0);
+
+    if ($matchesText && $matchesCategory && $matchesSize) {
+        $filtered[] = $product;
+    }
+}
+
+$pageTitle = "Каталог | SizeFit";
+include "header.php";
+?>
+
 <section class="page-title">
     <p class="subtitle">КИІМДЕР КАТАЛОГЫ</p>
     <h1>Өзіңе ұнайтын киімді таңда</h1>
@@ -28,238 +77,121 @@
 </section>
 
 <section class="search-section">
-    <!-- Іздеу JavaScript арқылы бетте бірден жұмыс істейді (script.js) -->
-    <div class="search-box">
-        <input type="text" id="liveSearch" placeholder="Киім атауы (мыс.: футболка, джинсы)...">
+    <form method="GET" action="catalog.php" class="search-box">
+        <input type="text" name="search" placeholder="Киім атауы (мыс.: футболка, джинсы)..."
+               value="<?= htmlspecialchars($search, ENT_QUOTES, "UTF-8") ?>">
 
-        <select id="categoryFilter">
+        <select name="category">
             <option value="">Барлық санат</option>
-            <option value="Жейде">Жейде</option>
-            <option value="Көйлек">Көйлек</option>
-            <option value="Свитер">Свитер</option>
-            <option value="Сыртқы киім">Сыртқы киім</option>
-            <option value="Футболка">Футболка</option>
-            <option value="Худи">Худи</option>
-            <option value="Шалбар">Шалбар</option>
+            <?php foreach ($categories as $c): ?>
+                <option value="<?= htmlspecialchars($c) ?>" <?= $category === $c ? "selected" : "" ?>>
+                    <?= htmlspecialchars($c) ?>
+                </option>
+            <?php endforeach; ?>
         </select>
 
-        <select id="sizeFilter">
+        <select name="size">
             <option value="">Барлық өлшем</option>
-            <option value="XS">XS</option>
-            <option value="S">S</option>
-            <option value="M">M</option>
-            <option value="L">L</option>
-            <option value="XL">XL</option>
-            <option value="XXL">XXL</option>
+            <?php foreach ($allSizes as $s): ?>
+                <option value="<?= $s ?>" <?= $size === $s ? "selected" : "" ?>><?= $s ?></option>
+            <?php endforeach; ?>
         </select>
-    </div>
+
+        <button type="submit">Іздеу</button>
+
+        <?php if ($search !== "" || $category !== "" || $size !== ""): ?>
+            <a href="catalog.php" class="reset-link">Тазалау</a>
+        <?php endif; ?>
+    </form>
 </section>
 
 <section class="products-section">
+
+    <?php if ($message !== ""): ?>
+        <div class="message <?= $messageType ?>">
+            <?= htmlspecialchars($message, ENT_QUOTES, "UTF-8") ?>
+        </div>
+    <?php endif; ?>
+
+    <p class="result-count">Табылған тауарлар: <b><?= count($filtered) ?></b></p>
+
     <div class="products-grid">
-        <article class="product-card" data-name="Классикалық ақ футболка" data-category="Футболка" data-sizes="XS,S,M,L,XL,XXL">
-            <div class="product-top" style="background: linear-gradient(135deg, #f8fafc, #e2e8f0);">
-                <span class="gender-tag">Унисекс</span>
-                <span class="product-icon">👕</span>
-                <span class="product-type">Футболка</span>
-            </div>
-
-            <div class="product-info">
-                <h3>Классикалық ақ футболка</h3>
-                <p class="product-desc">100% мақта, тығыз тоқылған, күнделікті киюге ыңғайлы</p>
-
-                <div class="sizes-row">
-                    <span class="size-chip">XS</span>
-                    <span class="size-chip">S</span>
-                    <span class="size-chip">M</span>
-                    <span class="size-chip">L</span>
-                    <span class="size-chip">XL</span>
-                    <span class="size-chip">XXL</span>
+        <?php foreach ($filtered as $product):
+            $available = array_filter($product["sizes"], fn($stock) => $stock > 0);
+        ?>
+            <article class="product-card">
+                <div class="product-top" style="background: <?= htmlspecialchars($product["color"]) ?>;">
+                    <span class="gender-tag"><?= htmlspecialchars($product["gender"]) ?></span>
+                    <span class="product-icon"><?= $product["icon"] ?></span>
+                    <span class="product-type"><?= htmlspecialchars($product["category"]) ?></span>
                 </div>
 
-                <p class="price">6 500 ₸</p>
-                <button type="button" class="order-btn js-order" data-name="Классикалық ақ футболка">Тапсырыс беру</button>
-            </div>
-        </article>
-        <article class="product-card" data-name="Slim Fit джинсы" data-category="Шалбар" data-sizes="XS,S,M,L">
-            <div class="product-top" style="background: linear-gradient(135deg, #dbeafe, #93c5fd);">
-                <span class="gender-tag">Әйелдер</span>
-                <span class="product-icon">👖</span>
-                <span class="product-type">Шалбар</span>
-            </div>
+                <div class="product-info">
+                    <h3><?= htmlspecialchars($product["name"]) ?></h3>
+                    <p class="product-desc"><?= htmlspecialchars($product["description"]) ?></p>
 
-            <div class="product-info">
-                <h3>Slim Fit джинсы</h3>
-                <p class="product-desc">Созылмалы деним, жіңішке пішін, жоғары бел</p>
+                    <div class="sizes-row">
+                        <?php foreach ($product["sizes"] as $label => $stock): ?>
+                            <span class="size-chip <?= $stock > 0 ? "" : "out" ?>"
+                                  title="Қоймада: <?= $stock ?> дана"><?= $label ?></span>
+                        <?php endforeach; ?>
+                    </div>
 
-                <div class="sizes-row">
-                    <span class="size-chip">XS</span>
-                    <span class="size-chip">S</span>
-                    <span class="size-chip">M</span>
-                    <span class="size-chip">L</span>
-                    <span class="size-chip out">XL</span>
-                    <span class="size-chip out">XXL</span>
+                    <p class="price"><?= number_format($product["price"], 0, ".", " ") ?> ₸</p>
+
+                    <?php if (count($available) === 0): ?>
+                        <button class="order-btn" disabled>Барлық өлшем таусылды</button>
+                    <?php else: ?>
+                        <form method="POST" action="catalog.php" class="order-form">
+                            <input type="hidden" name="product_id" value="<?= $product["id"] ?>">
+
+                            <div class="date-row">
+                                <label>
+                                    Өлшем
+                                    <select name="size" required>
+                                        <?php foreach ($available as $label => $stock): ?>
+                                            <option value="<?= $label ?>" <?= $label === $size ? "selected" : "" ?>>
+                                                <?= $label ?> (<?= $stock ?> дана)
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </label>
+                                <label>
+                                    Саны
+                                    <input type="number" name="quantity" value="1" min="1" max="5" required>
+                                </label>
+                            </div>
+
+                            <label class="field">
+                                Аты-жөніңіз
+                                <input type="text" name="client_name" placeholder="Атыңыз" required>
+                            </label>
+
+                            <label class="field">
+                                Телефон
+                                <input type="text" name="client_phone" placeholder="+77001234567" required>
+                            </label>
+
+                            <label class="field">
+                                Жеткізу мекенжайы
+                                <input type="text" name="address" placeholder="Қала, көше, үй" required>
+                            </label>
+
+                            <p class="form-error" hidden></p>
+                            <button type="submit" class="order-btn">Тапсырыс беру</button>
+                        </form>
+                    <?php endif; ?>
                 </div>
-
-                <p class="price">18 900 ₸</p>
-                <button type="button" class="order-btn js-order" data-name="Slim Fit джинсы">Тапсырыс беру</button>
-            </div>
-        </article>
-        <article class="product-card" data-name="Жүн свитер" data-category="Свитер" data-sizes="S,M,L,XL,XXL">
-            <div class="product-top" style="background: linear-gradient(135deg, #fef3c7, #fcd34d);">
-                <span class="gender-tag">Унисекс</span>
-                <span class="product-icon">🧶</span>
-                <span class="product-type">Свитер</span>
-            </div>
-
-            <div class="product-info">
-                <h3>Жүн свитер</h3>
-                <p class="product-desc">Жұмсақ жүн аралас мата, суық күндерге арналған</p>
-
-                <div class="sizes-row">
-                    <span class="size-chip out">XS</span>
-                    <span class="size-chip">S</span>
-                    <span class="size-chip">M</span>
-                    <span class="size-chip">L</span>
-                    <span class="size-chip">XL</span>
-                    <span class="size-chip">XXL</span>
-                </div>
-
-                <p class="price">15 900 ₸</p>
-                <button type="button" class="order-btn js-order" data-name="Жүн свитер">Тапсырыс беру</button>
-            </div>
-        </article>
-        <article class="product-card" data-name="Классикалық жейде" data-category="Жейде" data-sizes="S,M,L,XL,XXL">
-            <div class="product-top" style="background: linear-gradient(135deg, #e0f2fe, #bae6fd);">
-                <span class="gender-tag">Ерлер</span>
-                <span class="product-icon">👔</span>
-                <span class="product-type">Жейде</span>
-            </div>
-
-            <div class="product-info">
-                <h3>Классикалық жейде</h3>
-                <p class="product-desc">Кеңсеге және ресми кездесулерге лайық</p>
-
-                <div class="sizes-row">
-                    <span class="size-chip out">XS</span>
-                    <span class="size-chip">S</span>
-                    <span class="size-chip">M</span>
-                    <span class="size-chip">L</span>
-                    <span class="size-chip">XL</span>
-                    <span class="size-chip">XXL</span>
-                </div>
-
-                <p class="price">12 500 ₸</p>
-                <button type="button" class="order-btn js-order" data-name="Классикалық жейде">Тапсырыс беру</button>
-            </div>
-        </article>
-        <article class="product-card" data-name="Спорттық худи" data-category="Худи" data-sizes="XS,S,M,L,XL">
-            <div class="product-top" style="background: linear-gradient(135deg, #f3e8ff, #d8b4fe);">
-                <span class="gender-tag">Унисекс</span>
-                <span class="product-icon">🧥</span>
-                <span class="product-type">Худи</span>
-            </div>
-
-            <div class="product-info">
-                <h3>Спорттық худи</h3>
-                <p class="product-desc">Ішкі жағы жылы, күләпарасы және қалтасы бар</p>
-
-                <div class="sizes-row">
-                    <span class="size-chip">XS</span>
-                    <span class="size-chip">S</span>
-                    <span class="size-chip">M</span>
-                    <span class="size-chip">L</span>
-                    <span class="size-chip">XL</span>
-                    <span class="size-chip out">XXL</span>
-                </div>
-
-                <p class="price">17 500 ₸</p>
-                <button type="button" class="order-btn js-order" data-name="Спорттық худи">Тапсырыс беру</button>
-            </div>
-        </article>
-        <article class="product-card" data-name="Күзгі пальто" data-category="Сыртқы киім" data-sizes="XS,S,M">
-            <div class="product-top" style="background: linear-gradient(135deg, #fde68a, #d6a75c);">
-                <span class="gender-tag">Әйелдер</span>
-                <span class="product-icon">🧥</span>
-                <span class="product-type">Сыртқы киім</span>
-            </div>
-
-            <div class="product-info">
-                <h3>Күзгі пальто</h3>
-                <p class="product-desc">Ұзын классикалық пальто, белбеуі бар</p>
-
-                <div class="sizes-row">
-                    <span class="size-chip">XS</span>
-                    <span class="size-chip">S</span>
-                    <span class="size-chip">M</span>
-                    <span class="size-chip out">L</span>
-                    <span class="size-chip out">XL</span>
-                    <span class="size-chip out">XXL</span>
-                </div>
-
-                <p class="price">45 000 ₸</p>
-                <button type="button" class="order-btn js-order" data-name="Күзгі пальто">Тапсырыс беру</button>
-            </div>
-        </article>
-        <article class="product-card" data-name="Жазғы көйлек" data-category="Көйлек" data-sizes="XS,S,M,L,XL">
-            <div class="product-top" style="background: linear-gradient(135deg, #fce7f3, #f9a8d4);">
-                <span class="gender-tag">Әйелдер</span>
-                <span class="product-icon">👗</span>
-                <span class="product-type">Көйлек</span>
-            </div>
-
-            <div class="product-info">
-                <h3>Жазғы көйлек</h3>
-                <p class="product-desc">Жеңіл шифон мата, гүлді өрнекпен</p>
-
-                <div class="sizes-row">
-                    <span class="size-chip">XS</span>
-                    <span class="size-chip">S</span>
-                    <span class="size-chip">M</span>
-                    <span class="size-chip">L</span>
-                    <span class="size-chip">XL</span>
-                    <span class="size-chip out">XXL</span>
-                </div>
-
-                <p class="price">22 000 ₸</p>
-                <button type="button" class="order-btn js-order" data-name="Жазғы көйлек">Тапсырыс беру</button>
-            </div>
-        </article>
-        <article class="product-card" data-name="Спорттық шалбар" data-category="Шалбар" data-sizes="XS,S,M,L,XL,XXL">
-            <div class="product-top" style="background: linear-gradient(135deg, #dcfce7, #86efac);">
-                <span class="gender-tag">Унисекс</span>
-                <span class="product-icon">🩳</span>
-                <span class="product-type">Шалбар</span>
-            </div>
-
-            <div class="product-info">
-                <h3>Спорттық шалбар</h3>
-                <p class="product-desc">Жаттығуға және серуенге ыңғайлы, белі резеңке</p>
-
-                <div class="sizes-row">
-                    <span class="size-chip">XS</span>
-                    <span class="size-chip">S</span>
-                    <span class="size-chip">M</span>
-                    <span class="size-chip">L</span>
-                    <span class="size-chip">XL</span>
-                    <span class="size-chip">XXL</span>
-                </div>
-
-                <p class="price">11 900 ₸</p>
-                <button type="button" class="order-btn js-order" data-name="Спорттық шалбар">Тапсырыс беру</button>
-            </div>
-        </article>
+            </article>
+        <?php endforeach; ?>
     </div>
 
-    <p id="emptyMessage" class="empty-message" hidden>Іздеу бойынша тауар табылмады.</p>
+    <?php if (count($filtered) === 0): ?>
+        <p class="empty-message">
+            Іздеу бойынша тауар табылмады.<br>
+            <a href="catalog.php">Барлық тауарды көру →</a>
+        </p>
+    <?php endif; ?>
 </section>
-</main>
 
-<footer class="footer">
-    <a href="index.php" class="logo">Size<span>Fit</span></a>
-    <p>© 2026 SizeFit. Онлайн киім өлшемін таңдау және тапсырыс беру жүйесі. Оқу жобасы.</p>
-</footer>
-
-<script src="script.js"></script>
-</body>
-</html>
+<?php include "footer.php"; ?>

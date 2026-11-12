@@ -1,0 +1,89 @@
+<?php
+$message = "";
+$success = false;
+
+// Тіркелу формасын серверде тексеру ($_POST)
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $name = trim($_POST["name"] ?? "");
+    $email = trim($_POST["email"] ?? "");
+    $phone = trim($_POST["phone"] ?? "");
+    $password = $_POST["password"] ?? "";
+    $confirm = $_POST["confirm_password"] ?? "";
+
+    if ($name === "" || $email === "" ||
+        $phone === "" || $password === "" || $confirm === "") {
+        $message = "Барлық өрісті толтырыңыз.";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $message = "Email мекенжайын дұрыс енгізіңіз.";
+    } elseif (!preg_match('/^\+?7[0-9]{10}$/', $phone)) {
+        $message = "Телефон нөмірін +77001234567 форматында енгізіңіз.";
+    } elseif (strlen($password) < 8) {
+        $message = "Құпиясөз кемінде 8 таңба болуы керек.";
+    } elseif ($password !== $confirm) {
+        $message = "Құпиясөздер сәйкес келмейді.";
+    } else {
+        // 11-аптада: password_hash() арқылы хэштеп, users кестесіне сақтаймыз.
+        $success = true;
+        $message = "Құрметті " . $name . ", форма сәтті толтырылды!";
+        $_POST = []; // форманы тазалау
+    }
+}
+
+// Форма қате болса, енгізілген мәндер өшіп қалмауы үшін
+function old($field) {
+    return htmlspecialchars($_POST[$field] ?? "", ENT_QUOTES, "UTF-8");
+}
+
+$pageTitle = "Тіркелу | SizeFit";
+include "header.php";
+?>
+
+<div class="form-container">
+    <h1>Тіркелу</h1>
+
+    <p class="intro">
+        SizeFit жүйесіне тіркеліп, өз өлшеміңізге
+        сай киімге онлайн тапсырыс беріңіз.
+    </p>
+
+    <?php if ($message !== ""): ?>
+        <div class="message <?= $success ? "success" : "error" ?>">
+            <?= htmlspecialchars($message, ENT_QUOTES, "UTF-8") ?>
+        </div>
+    <?php endif; ?>
+
+    <form method="POST" action="register.php" id="registerForm">
+        <label for="name">Аты-жөніңіз</label>
+        <input type="text" id="name" name="name"
+               placeholder="Атыңыз бен тегіңіз"
+               value="<?= old("name") ?>" required minlength="2">
+
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email"
+               placeholder="name@example.com"
+               value="<?= old("email") ?>" required>
+
+        <label for="phone">Телефон</label>
+        <input type="tel" id="phone" name="phone"
+               placeholder="+77001234567"
+               value="<?= old("phone") ?>" required>
+
+        <label for="password">Құпиясөз</label>
+        <input type="password" id="password" name="password"
+               placeholder="Кемінде 8 таңба" minlength="8" required>
+
+        <label for="confirm_password">Құпиясөзді қайталаңыз</label>
+        <input type="password" id="confirm_password" name="confirm_password"
+               placeholder="Құпиясөзді қайталаңыз" minlength="8" required>
+
+        <p class="form-error" hidden></p>
+        <button type="submit">Тіркелу</button>
+    </form>
+
+    <p class="bottom">
+        Аккаунтыңыз бар ма?
+        <a href="login.php">Жүйеге кіру</a>
+    </p>
+</div>
+
+<?php include "footer.php"; ?>
